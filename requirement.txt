@@ -1,0 +1,10 @@
+pandas
+numpy
+requests
+plotly
+statsmodels
+pytz
+streamlit
+matplotlib
+scikit-learn
+requests
