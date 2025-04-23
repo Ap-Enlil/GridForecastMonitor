@@ -403,4 +403,3 @@ import matplotlib.pyplot as plt
 if __name__ == "__main__":
     all_iso_data = load_all_iso_data()
     ercot_data = all_iso_data.get("ERCOT")
-
