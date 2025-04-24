@@ -384,7 +384,7 @@ def calc_next_risk(df_analysis, phi, forecast_window_hours):
 
 # --- Streamlit App Setup ---
 st.set_page_config(layout="wide")
-st.title(f"Grid Forecast Monitor: Accuracy & Financial Impact of Load Prediction Error")
+st.title(f"Predictive Performance for Power Markets: Load Forecast Ercot V1")
 
 # --- Load Data ---
 all_iso_data = load_all_data_cached()
@@ -1075,7 +1075,7 @@ if all(col in df_analysis.columns for col in required_timeline_cols) and df_anal
         fig_timeline.update_layout(
             xaxis_title="Date / Time",
             yaxis_title=f"Forecast Error ({ERROR_UNITS})",
-            yaxis2_title=f"RT-DA Price Δ ($/MWh)",
+            yaxis2_title=f"RT-DA Price Δ ($/MWh), Hourly, Houston Hub",
             height=450,
             hovermode='x unified',
             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
@@ -1205,7 +1205,7 @@ with col_persist1:
 
 with col_persist2:
     st.markdown("**Error vs. Price Cross-Correlation (CCF)**")
-    st.caption("Corr(Error(t), PriceΔ(t+lag)). Bars outside dashed lines = significant correlation (95% CI). Helps see if errors lead/lag price moves.")
+    st.caption("Corr(Error(t), PriceΔ(t+lag)). Bars outside dashed lines = significant correlation (95% CI).Center (0) is same-hour cross correlation. Right side: Forecast Errors now vs. Prices difference X hours *later*. Left side: Prices difference correlated to Errors X hours *later*.")
     if has_price_data:
         if len(ccf_lags) > 0:
             try:
@@ -1548,60 +1548,6 @@ with st.expander("Advanced Diagnostics & Original Plots"):
     except Exception as e:
         logging.error(f"Error generating detailed Load/Forecast plot: {e}", exc_info=True)
         st.error(f"Error generating detailed Load/Forecast plot: {e}")
-        st.exception(e)
-
-    # --- Plot: Cumulative Forecast Bias ---
-    st.subheader("Cumulative Forecast Bias Over Time")
-    st.markdown(f"Shows the running total of forecast error (`{FORECAST_ERROR_COL}`), highlighting persistent bias trends.")
-    try:
-        if FORECAST_ERROR_COL in df_analysis.columns and df_analysis[FORECAST_ERROR_COL].notna().any():
-            cumulative_error = df_analysis[FORECAST_ERROR_COL].fillna(0).cumsum()
-            fig_cumul = go.Figure()
-            fig_cumul.add_trace(go.Scattergl(x=df_analysis.index, y=cumulative_error, mode='lines', # Use Scattergl
-                                           name='Cumulative Error', line=dict(color='purple', width=2), connectgaps=True))
-            fig_cumul.add_hline(y=0, line_width=1, line_dash="dash", line_color="grey")
-            fig_cumul.update_layout(
-                 xaxis_title="Date / Time", yaxis_title=f"Cumulative Error ({ERROR_UNITS}h)", height=400, hovermode='x unified',
-                 margin=dict(l=40, r=40, t=40, b=40))
-            st.plotly_chart(fig_cumul, use_container_width=True)
-        else:
-            st.info(f"Cumulative bias plot requires '{FORECAST_ERROR_COL}'.")
-    except Exception as e:
-        logging.error(f"Error generating cumulative error plot: {e}", exc_info=True)
-        st.error(f"Error generating cumulative error plot: {e}")
-        st.exception(e)
-
-    # --- Plot: Error vs. Actual Load Scatter ---
-    st.subheader("Forecast Error vs. Actual Load Level")
-    st.markdown("Shows if forecast accuracy changes depending on the system load level. Uses WebGL.")
-    try:
-        scatter_cols_adv = [FORECAST_ERROR_COL, ACTUAL_LOAD_COL]
-        if all(col in df_analysis.columns for col in scatter_cols_adv) and df_analysis[scatter_cols_adv].notna().all(axis=1).any():
-            # Use only non-NaN pairs for scatter
-            df_scatter_adv = df_analysis[scatter_cols_adv].dropna().copy()
-            if not df_scatter_adv.empty:
-                fig_scatter_adv = go.Figure()
-                fig_scatter_adv.add_trace(go.Scattergl( # Use Scattergl for potentially many points
-                    x=df_scatter_adv[ACTUAL_LOAD_COL], y=df_scatter_adv[FORECAST_ERROR_COL], mode='markers', name='Hourly Error',
-                    marker=dict(color='rgba(0, 128, 128, 0.5)', size=5), # Teal color, slightly larger markers
-                    customdata=df_scatter_adv.index.strftime('%Y-%m-%d %H:%M %Z'), # Format time for hover
-                    hovertemplate=(f"<b>Time:</b> %{{customdata}}<br>"  
-                                   f"<b>Actual Load:</b> %{{x:,.0f}} {ERROR_UNITS}<br>"
-                                   f"<b>Forecast Error:</b> %{{y:,.0f}} {ERROR_UNITS}<extra></extra>")
-                ))
-                fig_scatter_adv.add_hline(y=0, line_width=1, line_dash="dash", line_color="grey")
-                fig_scatter_adv.update_layout(
-                    xaxis_title=f"Actual Load ({ERROR_UNITS})", yaxis_title=f"Forecast Error ({ERROR_UNITS})",
-                    height=450, hovermode='closes\t', margin=dict(l=40, r=40, t=40, b=40)
-                )
-                st.plotly_chart(fig_scatter_adv, use_container_width=True)
-            else:
-                 st.info(f"No valid data points (where both '{FORECAST_ERROR_COL}' and '{ACTUAL_LOAD_COL}' are non-missing) available for scatter plot.")
-        else:
-             st.info(f"Error vs Load scatter requires '{FORECAST_ERROR_COL}' and '{ACTUAL_LOAD_COL}' with valid data.")
-    except Exception as e:
-        logging.error(f"Error generating error vs. load scatter plot: {e}", exc_info=True)
-        st.error(f"Error generating error vs. load scatter plot: {e}")
         st.exception(e)
 
 
