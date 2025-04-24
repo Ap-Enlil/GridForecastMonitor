@@ -1585,14 +1585,14 @@ with st.expander("Advanced Diagnostics & Original Plots"):
                     x=df_scatter_adv[ACTUAL_LOAD_COL], y=df_scatter_adv[FORECAST_ERROR_COL], mode='markers', name='Hourly Error',
                     marker=dict(color='rgba(0, 128, 128, 0.5)', size=5), # Teal color, slightly larger markers
                     customdata=df_scatter_adv.index.strftime('%Y-%m-%d %H:%M %Z'), # Format time for hover
-                    hovertemplate=(f"<b>Time:</b> %{{customdata}}<br>"
+                    hovertemplate=(f"<b>Time:</b> %{{customdata}}<br>"  
                                    f"<b>Actual Load:</b> %{{x:,.0f}} {ERROR_UNITS}<br>"
                                    f"<b>Forecast Error:</b> %{{y:,.0f}} {ERROR_UNITS}<extra></extra>")
                 ))
                 fig_scatter_adv.add_hline(y=0, line_width=1, line_dash="dash", line_color="grey")
                 fig_scatter_adv.update_layout(
                     xaxis_title=f"Actual Load ({ERROR_UNITS})", yaxis_title=f"Forecast Error ({ERROR_UNITS})",
-                    height=450, hovermode='closest', margin=dict(l=40, r=40, t=40, b=40)
+                    height=450, hovermode='closes\t', margin=dict(l=40, r=40, t=40, b=40)
                 )
                 st.plotly_chart(fig_scatter_adv, use_container_width=True)
             else:
